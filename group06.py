@@ -49,6 +49,53 @@ def check_and_save_highscore(current_score, current_highscore):
         return current_score  # 新しいハイスコアを返す
     return current_highscore  # 更新されなければ今のハイスコアをそのまま返す
 
+# ==========================================
+# D君 (C0A25136) 担当箇所: 当たり判定＆スコア処理
+# ==========================================
+class ScoreManager:
+    """
+    プレイヤーと落ちてくるアイテムの当たり判定、およびスコアの加減算を管理するクラス
+    """
+    def __init__(self) -> None:
+        pass  # 初期化処理（必要に応じて拡張可能）
+
+    def check_collisions(self, player_rect: pygame.Rect, item_list: list) -> list:
+        """
+        プレイヤーの矩形とアイテムリストの当たり判定を行うメソッド
+        
+        Args:
+            player_rect (pygame.Rect): プレイヤー（カゴ）の判定領域
+            item_list (list): 画面内にあるアクティブなアイテムのリスト
+            
+        Returns:
+            list: 衝突しなかった（画面に残る）アイテムの新しいリスト
+        """
+        remaining_items: list = []
+        global current_score  # メインループのスコア変数を更新するためにグローバル宣言
+
+        for item in item_list:
+            # アイテムの判定（相手のコードが辞書型かオブジェクト型かによって調整可能）
+            # ここでは一般的な辞書型（"rect"キーにpygame.Rectが入っている）と仮定
+            item_rect = item["rect"] if isinstance(item, dict) else item.rect
+            item_type = item["type"] if isinstance(item, dict) else item.type
+
+            # colliderect で重なり（衝突）を判定
+            if player_rect.colliderect(item_rect):
+                # 衝突した場合：スコアの更新
+                if item_type == "good":      # 良いアイテム（果物など）
+                    current_score += 10
+                elif item_type == "bad":     # 悪いアイテム（爆弾など）
+                    current_score -= 20
+                    if current_score < 0:    # スコアがマイナスにならないように安全処理
+                        current_score = 0
+                # 衝突したアイテムは remaining_items に追加しない（＝消滅させる）
+            else:
+                # 衝突しなかったアイテムは次のフレームも残す
+                remaining_items.append(item)
+
+        return remaining_items
+
+
 
 def main():
     # Pygameの初期化
@@ -62,10 +109,11 @@ def main():
     game_state = "TITLE"
     
     # --- [D君・G君合流用変数] スコア管理の土台 ---
-    current_score = 0  # 今回のスコア（D君がゲーム中に加算する）
+    current_sore = 0  # 今回のスコア（D君がゲーム中に加算する）
     high_score = 0     # 最高スコア（G君がファイルから読み込む）
     high_score =load_highscore() #ゲーム機同時に最高スコアを読み込む
-    
+    score_manager = ScoreManager() #class のインスタンス化
+
     # ［G君の合流ポイント①: ゲーム起動時に最高スコアを読み込む］
     # 例: high_score = ranking.load_highscore()
 
@@ -126,7 +174,10 @@ def main():
         elif game_state == "PLAY":
             # ［B君の合流ポイント②: プレイヤーの移動更新］
             # ［C君의 合流ポイント①: アイテムの落下更新］
-            # ［D君の合流ポイント①: 当たり判定の計算と、current_scoreの加算・減算］
+            
+            # ［D君の合流ポイント①: 当たり判定の計算とスコアの加減算］
+            # ※ 'player_rect' と 'active_items' は他のメンバーの変数名に合わせて調整してください
+            # active_items = score_manager.check_collisions(player_rect, active_items)
             elapsed_seconds = (pygame.time.get_ticks() - start_ticks) / 1000 #追加G　残り時間の計算
             time_left = 30 - elapsed_seconds
             
@@ -207,4 +258,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
