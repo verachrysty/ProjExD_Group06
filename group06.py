@@ -462,9 +462,10 @@ def main():
 
         elif game_state == "GAMEOVER":
             # ［G君の合流ポイント③: リザルト画面の描画（A君の画面を乗っ取る）］
-    # プレイ画面と同じ背景
-     
-            over_text = font.render("TIME OVER", True, RED)
+            # プレイ画面と同じ背景
+            screen.blit(play_bg, (0, 0))
+            
+            over_text = font.render("TIME OVER", True, ORANGE)
             over_rect = over_text.get_rect(center=(SCREEN_WIDTH // 2, 150))
             screen.blit(over_text, over_rect)
 
@@ -477,8 +478,8 @@ def main():
             screen.blit(score_text, score_rect)
             screen.blit(highscore_text, highscore_rect)
 
-            # retry_text = small_font.render("Press SPACE to Title", True, WHITE)
-            # screen.blit(retry_text, (260, 450))
+            retry_text = small_font.render("Press SPACE to Title", True, WHITE)
+            screen.blit(retry_text, (260, 450))
             # G君が作成した文字配置や、F君が作ったリザルト背景などをここで描画する
             
             # スコアとハイスコアの表示（G君の担当箇所）
