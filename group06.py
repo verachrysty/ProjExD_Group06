@@ -61,11 +61,25 @@ class TimeDisplay:
         self.normal_color = (0, 0, 255)
         self.warning_color = (255, 0, 0)
         self.rect_center = (300, SCREEN_HEIGHT - 50)
-def _get_text(self, time_left: int) -> str:
-    minutes = time_left // 60
-    seconds = time_left % 60
-    return f"Time: {minutes}:{seconds:02d}"
+        
+    def _get_text(self, time_left: int) -> str:
+        minutes = time_left // 60
+        seconds = time_left % 60
+        return f"Time: {minutes}:{seconds:02f}"
 
+    def _get_color(self, time_left: int):
+        if time_left <= 10:
+            return self.warning_color
+        else:
+            return self.normal_color
+        
+    def update(self, screen: pygame.Surface, time_left: int):
+        # self.image = self.font.render(self._get_text(time_left), 0, self._get_color(time_left))
+        # self.rect = self.image.get_rect()
+        # self.rect.center = self.rect_center
+        # screen.blit(self.image, self.rect)
+        pass
+        
 # ==========================================
 # f君 (C0C25082) 担当箇所: が仮で入れたやつ　たぶんあとで消す
 # ==========================================
@@ -143,17 +157,7 @@ def load_highscore():
             except ValueError:
                 return 0
     return 0
-def _get_color(self, time_left: int):
-    if time_left <= 10:
-        return self.warning_color
-    else:
-        return self.normal_color
-    
-def update(self, screen: pygame.Surface, time_left: int):
-    self.image = self.font.render(self._get_text(time_left), 0, self._get_color(time_left))
-    self.rect = self.image.get_rect()
-    self.rect.center = self.rect_center
-    screen.blit(self.image, self.rect)
+
 
 def check_and_save_highscore(current_score, current_highscore):
     """今回のスコアがハイスコアを超えていたらファイルに保存する関数"""
@@ -185,7 +189,8 @@ class ScoreManager:
             list: 衝突しなかった（画面に残る）アイテムの新しいリスト
         """
         remaining_items: list = []
-        global current_score  # メインループのスコア変数を更新するためにグローバル宣言
+        # global current_score  # メインループのスコア変数を更新するためにグローバル宣言
+        current_score = 0
 
         for item in item_list:
             # アイテムの判定（相手のコードが辞書型かオブジェクト型かによって調整可能）
@@ -207,7 +212,8 @@ class ScoreManager:
                 # 衝突しなかったアイテムは次のフレームも残す
                 remaining_items.append(item)
 
-        return remaining_items
+        # return remaining_items
+        return current_score # currentscore を返す
 
 
 
@@ -219,7 +225,7 @@ def main():
     clock = pygame.time.Clock()
 
     #こうかとんの初期設定
-    player_img = pygame.image.load("9.png")  
+    player_img = pygame.image.load("fig/9.png")  
     player_rect = player_img.get_rect() 
     player_rect.centerx = SCREEN_WIDTH // 2 
     player_rect.bottom = SCREEN_HEIGHT - 20 
@@ -354,7 +360,10 @@ def main():
                 fruit_speed = random.randint(3, 8)
             # ［D君の合流ポイント①: 当たり判定の計算とスコアの加減算］
             # ※ 'player_rect' と 'active_items' は他のメンバーの変数名に合わせて調整してください
-            # active_items = score_manager.check_collisions(player_rect, active_items)
+            plus_score = score_manager.check_collisions(player_rect, [{"type": "good", "rect": fruit_rect}])
+            if plus_score != 0:
+                fruit_rect.top = SCREEN_HEIGHT + 100
+                current_score += plus_score
             elapsed_seconds = (pygame.time.get_ticks() - start_ticks) / 1000 #追加G　残り時間の計算
             time_left = 30 - elapsed_seconds
             
@@ -405,7 +414,7 @@ def main():
             screen.blit(title_text, title_rect)
             screen.blit(start_text, start_rect)
 
-        elif game_state == "PLAY":
+        # elif game_state == "PLAY":
             screen.blit(player_img, player_rect) 
             """スクリーンにこうかとんを映しています"""
             # ［F君・B君の合流ポイント: プレイヤー（カゴ）の描画］
